@@ -1,0 +1,11 @@
+{
+    "python.formatting.provider": "none",
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "ms-python.autopep8",
+    "mypy-type-checker.args": [
+        "--follow-imports=silent",
+        "--show-column-numbers",
+        "--no-pretty",
+        "--strict"
+    ]
+}
