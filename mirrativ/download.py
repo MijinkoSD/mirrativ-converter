@@ -21,7 +21,7 @@ HEADERS: Final[dict[str, str]] = {
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/116.0.0.0 Safari/537.36",
 }
-DEFAULT_TIMEOUT: Final[tuple[int, int]] = (3.0, 7.5)
+DEFAULT_TIMEOUT: Final[tuple[float, float]] = (3.0, 7.5)
 CACHE_DIR: Final[str] = path.join("cache")
 
 # 必要なディレクトリが存在しなければ作成する
