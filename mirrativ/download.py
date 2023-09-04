@@ -73,11 +73,14 @@ def playlist_urls(live_info: LiveInfo) -> list[str]:
     return [url_path + name for name in names]
 
 
-def movie(url: str) -> None:
+def movie(url: str) -> str:
     """動画ファイルをダウンロードして保存します。
 
     Args:
         url (str): 動画ファイルのURL
+
+    Returns:
+        str: 保存したファイルの名前
 
     Raises:
         requests.exceptions.Timeout: タイムアウト時
@@ -87,3 +90,5 @@ def movie(url: str) -> None:
 
     with open(path.join(CACHE_DIR, filename), mode="wb") as file:
         file.write(res.content)
+
+    return filename
