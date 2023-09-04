@@ -63,7 +63,13 @@ def playlist_urls(live_info: LiveInfo) -> list[str]:
     url_path: str = "/".join(url.split("/")[0:-1]) + "/"
     res = get(url, headers=HEADERS, timeout=DEFAULT_TIMEOUT)
 
-    names = re.compile(r"^(?!#).*\.ts$").findall(res.text)
+    splited = res.text.split("\n")
+    pattern = re.compile(r"^(?!#).*\.ts$")
+    names: list[str] = []
+    for line in splited:
+        if (pattern.match(line) is None):
+            continue
+        names.append(line)
     return [url_path + name for name in names]
 
 
@@ -76,8 +82,8 @@ def movie(url: str) -> None:
     Raises:
         requests.exceptions.Timeout: タイムアウト時
     """
-    filename: str = "_".join(url.split("/")[-2:-1])
+    filename: str = "_".join(url.split("/")[-2:])
     res = get(url, headers=HEADERS, timeout=DEFAULT_TIMEOUT)
 
-    with open(filename, mode="wb") as file:
+    with open(path.join(CACHE_DIR, filename), mode="wb") as file:
         file.write(res.content)
