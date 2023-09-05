@@ -70,14 +70,14 @@ def playlist(live_info: LiveInfo) -> None:
         file.write(res.text)
 
 
-def get_urls(live_info: LiveInfo) -> list[MovieInfo]:
-    """動画のURLの一覧を返却します。
+def get_movie_info(live_info: LiveInfo) -> list[MovieInfo]:
+    """動画情報の一覧を返却します。
 
     Args:
-        live_info (LiveInfo): _description_
+        live_info (LiveInfo): ライブ情報
 
     Returns:
-        list[str]: _description_
+        list[MovieInfo]: 動画情報の一覧
     """
     url_path: str = "/".join(
         live_info["archive_url_hls"].split("/")[0:-1]
