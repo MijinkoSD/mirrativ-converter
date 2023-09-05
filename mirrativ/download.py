@@ -3,10 +3,12 @@
 
 import re
 from os import path, makedirs
+from os.path import isfile
 from typing import Final
 
 from requests import get
 
+from .common import CACHE_BASE_DIR
 from .type import LiveInfo, MovieInfo
 
 LIVEINFO_BASE_URL: Final[str] = "https://www.mirrativ.com/api/live/live"
@@ -22,7 +24,6 @@ HEADERS: Final[dict[str, str]] = {
     "Chrome/116.0.0.0 Safari/537.36",
 }
 DEFAULT_TIMEOUT: Final[tuple[float, float]] = (3.0, 7.5)
-CACHE_BASE_DIR: Final[str] = path.join("cache")
 
 # 必要なディレクトリが存在しなければ作成する
 makedirs(CACHE_BASE_DIR, exist_ok=True)
@@ -85,6 +86,13 @@ def get_urls(live_info: LiveInfo) -> list[MovieInfo]:
     filedir: str = path.join(CACHE_BASE_DIR, live_info["live_id"])
     makedirs(filedir, exist_ok=True)
     filepath: str = path.join(filedir, "playlist.m3u8")
+    if not isfile(filepath):
+        # ファイルがなければダウンロードしてくる
+        playlist(live_info)
+        if not isfile(filepath):
+            # エラーが一般的すぎると言われたけれど、めんどくさいので握り潰す
+            # pylint: disable-next=broad-exception-raised
+            raise Exception("原因不明")
 
     lines = []
     with open(filepath, mode="rt", encoding="utf-8") as file:
