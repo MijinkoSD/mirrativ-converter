@@ -7,7 +7,7 @@ from typing import Final
 
 from requests import get
 
-from .type import LiveInfo
+from .type import LiveInfo, MovieInfo
 
 LIVEINFO_BASE_URL: Final[str] = "https://www.mirrativ.com/api/live/live"
 HEADERS: Final[dict[str, str]] = {
@@ -22,10 +22,10 @@ HEADERS: Final[dict[str, str]] = {
     "Chrome/116.0.0.0 Safari/537.36",
 }
 DEFAULT_TIMEOUT: Final[tuple[float, float]] = (3.0, 7.5)
-CACHE_DIR: Final[str] = path.join("cache")
+CACHE_BASE_DIR: Final[str] = path.join("cache")
 
 # 必要なディレクトリが存在しなければ作成する
-makedirs(CACHE_DIR, exist_ok=True)
+makedirs(CACHE_BASE_DIR, exist_ok=True)
 
 
 def liveinfo(live_id: str) -> LiveInfo:
@@ -47,8 +47,8 @@ def liveinfo(live_id: str) -> LiveInfo:
     return data
 
 
-def playlist_urls(live_info: LiveInfo) -> list[str]:
-    """動画のURLの一覧を返却します。
+def playlist(live_info: LiveInfo) -> None:
+    """動画ファイルの情報を取得してキャッシュに保存します。
 
     Args:
         live_info (LiveInfo): ライブ情報
@@ -60,17 +60,59 @@ def playlist_urls(live_info: LiveInfo) -> list[str]:
         requests.exceptions.Timeout: タイムアウト時
     """
     url: str = live_info["archive_url_hls"]
-    url_path: str = "/".join(url.split("/")[0:-1]) + "/"
     res = get(url, headers=HEADERS, timeout=DEFAULT_TIMEOUT)
 
-    splited = res.text.split("\n")
-    pattern = re.compile(r"^(?!#).*\.ts$")
-    names: list[str] = []
-    for line in splited:
-        if (pattern.match(line) is None):
-            continue
-        names.append(line)
-    return [url_path + name for name in names]
+    filedir: str = path.join(CACHE_BASE_DIR, live_info["live_id"])
+    makedirs(filedir, exist_ok=True)
+    filepath: str = path.join(filedir, "playlist.m3u8")
+    with open(filepath, mode="wt", encoding="utf-8") as file:
+        file.write(res.text)
+
+
+def get_urls(live_info: LiveInfo) -> list[MovieInfo]:
+    """動画のURLの一覧を返却します。
+
+    Args:
+        live_info (LiveInfo): _description_
+
+    Returns:
+        list[str]: _description_
+    """
+    url_path: str = "/".join(
+        live_info["archive_url_hls"].split("/")[0:-1]
+    ) + "/"
+
+    filedir: str = path.join(CACHE_BASE_DIR, live_info["live_id"])
+    makedirs(filedir, exist_ok=True)
+    filepath: str = path.join(filedir, "playlist.m3u8")
+
+    lines = []
+    with open(filepath, mode="rt", encoding="utf-8") as file:
+        lines = file.read().split("\n")
+
+    pattern_extinf = re.compile(r"^#EXTINF:(.*),$")
+    pattern_filename = re.compile(r"^(?!#).*\.ts$")
+    info: list[MovieInfo] = []
+    for line in lines:
+        match_extinf = pattern_extinf.match(line)
+        if match_extinf is not None:
+            # #EXTINFが見つかった場合
+            length = float(match_extinf.groups()[0])
+            info.append({
+                "movie_length": length,
+                # 仮で値を入れておく
+                "filename": "",
+                "fileurl": "",
+            })
+
+        elif pattern_filename.match(line) is not None:
+            # ファイル名が見つかった場合
+            if len(info) <= 0:
+                continue
+            info[-1]["filename"] = line
+            info[-1]["fileurl"] = url_path + line
+
+    return info
 
 
 def movie(url: str) -> str:
@@ -85,10 +127,13 @@ def movie(url: str) -> str:
     Raises:
         requests.exceptions.Timeout: タイムアウト時
     """
-    filename: str = "_".join(url.split("/")[-2:])
+    [live_id, movie_name] = url.split("/")[-2:]
+    filename: str = movie_name
     res = get(url, headers=HEADERS, timeout=DEFAULT_TIMEOUT)
+    cache_dir = path.join(CACHE_BASE_DIR, live_id)
+    makedirs(cache_dir, exist_ok=True)
 
-    with open(path.join(CACHE_DIR, filename), mode="wb") as file:
+    with open(path.join(cache_dir, filename), mode="wb") as file:
         file.write(res.content)
 
     return filename
