@@ -136,12 +136,17 @@ def movie(url: str) -> str:
         requests.exceptions.Timeout: タイムアウト時
     """
     [live_id, movie_name] = url.split("/")[-2:]
-    filename: str = movie_name
-    res = get(url, headers=HEADERS, timeout=DEFAULT_TIMEOUT)
     cache_dir = path.join(CACHE_BASE_DIR, live_id)
+    filename: str = movie_name
+    filepath = path.join(cache_dir, filename)
+    if isfile(filepath):
+        # 既にダウンロード済みであれば何もしない
+        return
+
+    res = get(url, headers=HEADERS, timeout=DEFAULT_TIMEOUT)
     makedirs(cache_dir, exist_ok=True)
 
-    with open(path.join(cache_dir, filename), mode="wb") as file:
+    with open(filepath, mode="wb") as file:
         file.write(res.content)
 
     return filename
