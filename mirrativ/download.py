@@ -3,7 +3,7 @@
 
 import re
 from os import path, makedirs
-from os.path import isfile
+from os.path import isfile, abspath
 from typing import Final
 
 from requests import get
@@ -130,7 +130,7 @@ def movie(url: str) -> str:
         url (str): 動画ファイルのURL
 
     Returns:
-        str: 保存したファイルの名前
+        str: 保存したファイルの絶対パス
 
     Raises:
         requests.exceptions.Timeout: タイムアウト時
@@ -149,4 +149,4 @@ def movie(url: str) -> str:
     with open(filepath, mode="wb") as file:
         file.write(res.content)
 
-    return filename
+    return abspath(filepath)
