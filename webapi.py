@@ -1,15 +1,26 @@
 """Web API
 """
 
-from os.path import basename
+from os.path import basename, dirname
+from logging import getLogger
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import Response, FileResponse
 
 from mirrativ import download, convert
 
 app = FastAPI()
 # app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+
+
+def print_log(message: str) -> None:
+    """標準出力にメッセージを出力します。
+
+    Args:
+        message (str): 出力するメッセージ
+    """
+    logger = getLogger("uvicorn")
+    logger.info(message)
 
 
 @app.get("/")
@@ -49,19 +60,25 @@ def get_audio(live_id: str, file_name: str) -> FileResponse:
 
     Args:
         live_id (str): 動画ID
-        file_name (str): ファイル名
+        file_name (str): 変換する動画ファイルの名前
 
     Returns:
         FileResponse: 音声ファイルが含まれるレスポンス
+
+    Raises:
+        HTTPException: 必要な情報が取得できなかった時
     """
     info = download.liveinfo(live_id)
-    url = "/".join(info["archive_url_hls"].split("/")[0:-1]) + file_name
+    archive_url_hls = info["archive_url_hls"]
+    if archive_url_hls is None:
+        return HTTPException(status_code=400)
+    url = "/".join(archive_url_hls.split("/")[0:-1]) + "/" + file_name
 
     filepath: str = download.movie(url)
-    convert.file(filepath, basename(filepath))
+    audio_path = convert.file(filepath, dirname(filepath))
 
     return FileResponse(
-        path=filepath,
+        path=audio_path,
         # media_type="audio/mpeg"
-        filename=basename(filepath)
+        filename=basename(audio_path)
     )
