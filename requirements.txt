@@ -5,3 +5,5 @@ autopep8 >= 2.0.2
 requests >= 2.31
 types-requests >= 2.31.0.2
 ffmpeg-python >= 0.2.0
+fastapi ~= 0.103
+uvicorn ~= 0.23

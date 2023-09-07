@@ -48,14 +48,14 @@ def liveinfo(live_id: str) -> LiveInfo:
     return data
 
 
-def playlist(live_info: LiveInfo) -> None:
+def playlist(live_info: LiveInfo) -> str:
     """動画ファイルの情報を取得してキャッシュに保存します。
 
     Args:
         live_info (LiveInfo): ライブ情報
 
     Returns:
-        list[str]: URLのlist
+        str: 保存したファイルのパス
 
     Raises:
         requests.exceptions.Timeout: タイムアウト時
@@ -68,6 +68,8 @@ def playlist(live_info: LiveInfo) -> None:
     filepath: str = path.join(filedir, "playlist.m3u8")
     with open(filepath, mode="wt", encoding="utf-8") as file:
         file.write(res.text)
+
+    return abspath(filepath)
 
 
 def get_movie_info(live_info: LiveInfo) -> list[MovieInfo]:
@@ -141,7 +143,7 @@ def movie(url: str) -> str:
     filepath = path.join(cache_dir, filename)
     if isfile(filepath):
         # 既にダウンロード済みであれば何もしない
-        return
+        return abspath(filepath)
 
     res = get(url, headers=HEADERS, timeout=DEFAULT_TIMEOUT)
     makedirs(cache_dir, exist_ok=True)
