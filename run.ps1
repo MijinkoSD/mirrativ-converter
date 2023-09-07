@@ -1,7 +1,7 @@
 .\scripts\active-venv.ps1
 
 # この下で任意のファイルの実行をする
-python .\sample\hello.py # Hello World!
+uvicorn webapi:app
 
 
 # 終了時（任意）

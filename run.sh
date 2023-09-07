@@ -16,7 +16,7 @@ pip install -U pip
 pip install -r ./requirements.txt
 
 # この下で任意のファイルの実行をする
-python ./sample/hello.py
+uvicorn webapi:app
 
 
 # 終了時は自動的にdeactivateされる
