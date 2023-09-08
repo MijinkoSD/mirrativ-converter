@@ -5,7 +5,7 @@ from os.path import basename, dirname
 from logging import getLogger
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import Response, FileResponse
+from fastapi.responses import Response, FileResponse, JSONResponse
 
 from mirrativ import download, convert
 
@@ -51,6 +51,22 @@ def get_m3u8(live_id: str) -> FileResponse:
         media_type="text/plain",
         filename=basename(filepath)
     )
+
+
+@app.get("/archive/{live_id}/m3u8/json")
+def get_m3u8_json(live_id: str) -> JSONResponse:
+    """playlist.m3u8の内容をJSONで返却します。
+
+    Args:
+        live_id (str): ライブID
+
+    Returns:
+        JSONResponse: playlist.m3u8をJSON化したレスポンス
+    """
+    info = download.liveinfo(live_id)
+    movie_info = download.get_movie_info(info)
+
+    return JSONResponse(movie_info)
 
 
 @app.get("/archive/{live_id}/audio/{file_name}")
