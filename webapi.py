@@ -1,7 +1,7 @@
 """Web API
 """
 
-from os.path import basename, dirname
+from os.path import basename, dirname, splitext
 from logging import getLogger
 
 from fastapi import FastAPI, HTTPException
@@ -84,6 +84,8 @@ def get_audio(live_id: str, file_name: str) -> FileResponse:
     Raises:
         HTTPException: 必要な情報が取得できなかった時
     """
+    file_name = splitext(file_name)[0] + ".ts"
+
     info = download.liveinfo(live_id)
     archive_url_hls = info["archive_url_hls"]
     if archive_url_hls is None:

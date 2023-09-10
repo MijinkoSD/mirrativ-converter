@@ -3,7 +3,7 @@
 
 import re
 from os import path, makedirs
-from os.path import isfile, abspath
+from os.path import isfile, abspath, splitext
 from typing import Final
 
 from requests import get
@@ -119,8 +119,8 @@ def get_movie_info(live_info: LiveInfo) -> list[MovieInfo]:
             # ファイル名が見つかった場合
             if len(info) <= 0:
                 continue
-            info[-1]["filename"] = line
-            info[-1]["fileurl"] = url_path + line
+            info[-1]["filename"] = splitext(line)[0] + ".mp3"
+            info[-1]["fileurl"] = url_path + splitext(line)[0] + ".mp3"
 
     return info
 
